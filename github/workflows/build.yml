@@ -1,0 +1,41 @@
+name: Build Pokemon Rumble World Plugin 3GX
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: devkitpro/devkitarm:latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Build CTRPluginFramework
+      run: |
+        cd /tmp
+        git clone --depth 1 https://github.com/PabloMK7/CTRPluginFramework.git
+        cd CTRPluginFramework/Library
+        make -j$(nproc)
+        make install
+
+    - name: Build Plugin
+      run: |
+        export DEVKITPRO=/opt/devkitpro
+        export DEVKITARM=/opt/devkitpro/devkitARM
+        export PATH=$DEVKITARM/bin:$PATH
+        export LIBCTRU=/opt/devkitpro/libctru
+        export CTRPLUGINFOLDER=/tmp/CTRPluginFramework
+        cd $GITHUB_WORKSPACE
+        make clean || true
+        make
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: PokemonRumbleWorld-3GX
+        path: "*.3gx"
+        
